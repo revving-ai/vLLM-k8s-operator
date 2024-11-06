@@ -17,26 +17,50 @@ limitations under the License.
 package v1alpha1
 
 import (
+	v1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
-// EDIT THIS FILE!  THIS IS SCAFFOLDING FOR YOU TO OWN!
-// NOTE: json tags are required.  Any new fields you add must have json tags for the fields to be serialized.
-
 // VllmDeploymentSpec defines the desired state of VllmDeployment.
 type VllmDeploymentSpec struct {
-	// INSERT ADDITIONAL SPEC FIELDS - desired state of cluster
-	// Important: Run "make" to regenerate code after modifying this file
+	Replicas    int32           `json:"replicas"`
+	Model       *ModelConfig    `json:"model"`
+	VLLMConfig  *VLLMConfig     `json:"vLLMConfig"`
+	Tolerations []v1.Toleration `json:"tolerations,omitempty"`
+	Containers  []v1.Container  `json:"containers,omitempty"`
+	// TODO (similar to prometheus): VolumeClaimTemplate EmbeddedPersistentVolumeClaim `json:"volumeClaimTemplate,omitempty"`
+}
 
-	// Foo is an example field of VllmDeployment. Edit vllmdeployment_types.go to remove/update
-	Foo string `json:"foo,omitempty"`
+type ModelConfig struct {
+	Name  string `json:"name"`
+	HfURL string `json:"hf_url"`
+}
+
+type VLLMConfig struct {
+	Port                 int     `json:"port"`
+	GpuMemoryUtilization float64 `json:"gpu-memory-utilization"`
+	LogLevel             string  `json:"log-level"`
+	BlockSize            int     `json:"block-size"`
+	MaxModelLen          int     `json:"max-model-len"`
 }
 
 // VllmDeploymentStatus defines the observed state of VllmDeployment.
 type VllmDeploymentStatus struct {
-	// INSERT ADDITIONAL STATUS FIELD - define observed state of cluster
-	// Important: Run "make" to regenerate code after modifying this file
+	// The current state of the Prometheus deployment.
+	// +listType=map
+	// +listMapKey=type
+	// +optional
+	Conditions []Condition `json:"conditions,omitempty"`
 }
+
+type Condition struct {
+	// Type of the condition being reported.
+	// +required
+	Type ConditionType `json:"type"`
+}
+
+// +kubebuilder:validation:MinLength=1
+type ConditionType string
 
 // +kubebuilder:object:root=true
 // +kubebuilder:subresource:status
