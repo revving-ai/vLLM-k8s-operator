@@ -1,0 +1,9 @@
+apiVersion: core.vllmoperator.org/v1alpha1
+kind: VllmDeployment
+metadata:
+  labels:
+    app.kubernetes.io/name: vllm-k8s-operator
+    app.kubernetes.io/managed-by: kustomize
+  name: vllmdeployment-sample
+spec:
+  # TODO(user): Add fields here

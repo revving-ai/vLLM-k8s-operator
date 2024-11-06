@@ -1,0 +1,23 @@
+# permissions for end users to view vllmdeployments.
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  labels:
+    app.kubernetes.io/name: vllm-k8s-operator
+    app.kubernetes.io/managed-by: kustomize
+  name: vllmdeployment-viewer-role
+rules:
+- apiGroups:
+  - core.vllmoperator.org
+  resources:
+  - vllmdeployments
+  verbs:
+  - get
+  - list
+  - watch
+- apiGroups:
+  - core.vllmoperator.org
+  resources:
+  - vllmdeployments/status
+  verbs:
+  - get
