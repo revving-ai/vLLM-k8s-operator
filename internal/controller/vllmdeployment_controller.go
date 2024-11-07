@@ -19,10 +19,10 @@ package controller
 import (
 	"context"
 	"fmt"
+	"reflect"
 
 	appsv1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
-	v1 "k8s.io/api/core/v1"
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/types"
@@ -33,7 +33,6 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/log"
 
-	"github.com/revving-ai/vLLM-k8s-operator/api/v1alpha1"
 	vllm "github.com/revving-ai/vLLM-k8s-operator/api/v1alpha1"
 )
 
@@ -103,23 +102,57 @@ func (r *VllmDeploymentReconciler) Reconcile(ctx context.Context, req ctrl.Reque
 			log.Error(err, "Failed to create new Deployment", "Deployment.Namespace", desiredDeployment.Namespace, "Deployment.Name", desiredDeployment.Name)
 			return ctrl.Result{}, err
 		}
-		return ctrl.Result{Requeue: true}, nil 
+		return ctrl.Result{Requeue: true}, nil
 	} else if err != nil {
 		// Error reading the Deployment - requeue
 		log.Error(err, "Failed to get deployment")
-		return ctrl.Result{}, err 
+		return ctrl.Result{}, err
 	}
-	// Existing Deployment found. Check if there is a need to update it 
+	// Existing Deployment found. Check if there is a need to update it
 	// Compare the desired and existing Deployment specs
 
+	if !reflect.DeepEqual(existingDeployment.Spec, desiredDeployment.Spec) {
+		log.Info("Updating existing deployment")
+		// Create a copy of the existing Deployment to avoid modifying the cache
+		updatedDep := existingDeployment.DeepCopy()
+		updatedDep.Spec = desiredDeployment.Spec
+		//Update the deployment
+		if err := r.Update(ctx, updatedDep); err != nil {
+			log.Error(err, "Failed to update the Deployment")
+			return ctrl.Result{}, err
+		}
+		// Deployment updated successfully - requeue for status update
+		return ctrl.Result{Requeue: true}, nil
 
 	}
 
+	// Update the status of VllmDeployment if necessary
+	// Fetch the latest Deployment status
+	if err := r.Get(ctx, types.NamespacedName{Name: existingDeployment.Name, Namespace: existingDeployment.Namespace}, &existingDeployment); err != nil {
+		log.Error(err, "Failed to re-fetch Deployment for status update")
+		return ctrl.Result{}, err
+	}
+
+	// Update the VllmDeployment status
+	updatedStatus := vllmDeployment.Status.DeepCopy()
+	//TODO: CHANGE SOON updatedStatus.Replicas = existingDeployment.Status.ReadyReplicas
+
+	if !reflect.DeepEqual(vllmDeployment.Status, *updatedStatus) {
+		// Update status
+		vllmDeployment.Status = *updatedStatus
+		if err := r.Status().Update(ctx, &vllmDeployment); err != nil {
+			log.Error(err, "Failed to update VllmDeployment status")
+			return ctrl.Result{}, err
+		}
+	}
+
+	log.Info("Reconciliation complete")
+	// Reconciliation successful - don't requeue
 	return ctrl.Result{}, nil
 }
 
 // constructDeployment constructs a Deployment object based on the given vllmDeployment // by mapping the fields from the vllmDeployment spec to the Deployment spec
-func constructDeployment(v *v1alpha1.VllmDeployment) *appsv1.Deployment {
+func constructDeployment(v *vllm.VllmDeployment) *appsv1.Deployment {
 
 	labels := map[string]string{
 		"app": v.Name,
@@ -151,7 +184,7 @@ func constructDeployment(v *v1alpha1.VllmDeployment) *appsv1.Deployment {
 	container := corev1.Container{
 		Name:            vllmContainer.Name,
 		Image:           vllmContainer.Image,
-		ImagePullPolicy: v1.PullPolicy(vllmContainer.ImagePullPolicy),
+		ImagePullPolicy: corev1.PullPolicy(vllmContainer.ImagePullPolicy),
 		Env:             envVars,
 		Args:            args,
 		Ports:           containerPorts,
