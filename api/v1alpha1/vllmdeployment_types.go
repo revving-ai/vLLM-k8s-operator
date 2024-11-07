@@ -27,7 +27,7 @@ type VllmDeploymentSpec struct {
 	Model       *ModelConfig    `json:"model"`
 	VLLMConfig  *VLLMConfig     `json:"vLLMConfig"`
 	Tolerations []v1.Toleration `json:"tolerations,omitempty"`
-	Containers  []v1.Container  `json:"containers,omitempty"`
+	Container   v1.Container    `json:"containers,omitempty"`
 	// TODO (similar to prometheus): VolumeClaimTemplate EmbeddedPersistentVolumeClaim `json:"volumeClaimTemplate,omitempty"`
 }
 
@@ -37,11 +37,11 @@ type ModelConfig struct {
 }
 
 type VLLMConfig struct {
-	Port                 int     `json:"port"`
-	GpuMemoryUtilization float64 `json:"gpu-memory-utilization"`
-	LogLevel             string  `json:"log-level"`
-	BlockSize            int     `json:"block-size"`
-	MaxModelLen          int     `json:"max-model-len"`
+	Port                 int    `json:"port"`
+	GpuMemoryUtilization string `json:"gpu-memory-utilization"`
+	LogLevel             string `json:"log-level"`
+	BlockSize            int    `json:"block-size"`
+	MaxModelLen          int    `json:"max-model-len"`
 }
 
 // VllmDeploymentStatus defines the observed state of VllmDeployment.
