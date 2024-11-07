@@ -23,11 +23,12 @@ import (
 
 // VllmDeploymentSpec defines the desired state of VllmDeployment.
 type VllmDeploymentSpec struct {
-	Replicas    int32           `json:"replicas"`
-	Model       *ModelConfig    `json:"model"`
-	VLLMConfig  *VLLMConfig     `json:"vLLMConfig"`
-	Tolerations []v1.Toleration `json:"tolerations,omitempty"`
-	Container   v1.Container    `json:"containers,omitempty"`
+	Replicas       int32           `json:"replicas"`
+	Model          *ModelConfig    `json:"model"`
+	VLLMConfig     *VLLMConfig     `json:"vLLMConfig"`
+	Tolerations    []v1.Toleration `json:"tolerations,omitempty"`
+	Containers     []v1.Container  `json:"containers,omitempty"`
+	InitContainers []v1.Container  `json:"initContainers,omitempty"`
 	// TODO (similar to prometheus): VolumeClaimTemplate EmbeddedPersistentVolumeClaim `json:"volumeClaimTemplate,omitempty"`
 }
 
