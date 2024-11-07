@@ -23,7 +23,7 @@ import (
 
 // VllmDeploymentSpec defines the desired state of VllmDeployment.
 type VllmDeploymentSpec struct {
-	Replicas       int32           `json:"replicas"`
+	Replicas       *int32          `json:"replicas"`
 	Model          *ModelConfig    `json:"model"`
 	VLLMConfig     *VLLMConfig     `json:"vLLMConfig"`
 	Tolerations    []v1.Toleration `json:"tolerations,omitempty"`

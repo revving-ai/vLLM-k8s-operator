@@ -23,6 +23,10 @@ import (
 	appsv1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
 	v1 "k8s.io/api/core/v1"
+	apierrors "k8s.io/apimachinery/pkg/api/errors"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/apimachinery/pkg/types"
+
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/client-go/tools/record"
 	ctrl "sigs.k8s.io/controller-runtime"
@@ -56,9 +60,60 @@ type VllmDeploymentReconciler struct {
 // For more details, check Reconcile and its Result here:
 // - https://pkg.go.dev/sigs.k8s.io/controller-runtime@v0.19.0/pkg/reconcile
 func (r *VllmDeploymentReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.Result, error) {
-	_ = log.FromContext(ctx)
 
-	// TODO(user): your logic here
+	log := log.FromContext(ctx).WithValues("vllmdeployment", req.NamespacedName)
+	log.Info("Starting Reconciliation")
+
+	// Fetch the VllmDeployment instance
+	var vllmDeployment vllm.VllmDeployment
+	if err := r.Get(ctx, req.NamespacedName, &vllmDeployment); err != nil {
+		if apierrors.IsNotFound(err) {
+			log.Info("VllmDeployment resource not found. Ignoring since object might be deleted")
+			return ctrl.Result{}, err
+		}
+		// requeue the request
+		log.Error(err, "Failed to get VllmDeployment")
+		return ctrl.Result{}, err
+	}
+	// TODO: placeholder to handle deletion later
+	if !vllmDeployment.ObjectMeta.DeletionTimestamp.IsZero() {
+		log.Info("VllmDeployment is being deleted")
+		log.Info(fmt.Sprintf("VllmDeployment is being deleted: Name=%s, Namespace=%s", req.NamespacedName.Name, req.NamespacedName.Namespace))
+		return ctrl.Result{}, nil
+	}
+	desiredDeployment := constructDeployment(&vllmDeployment)
+
+	// Set the owner reference
+	if err := ctrl.SetControllerReference(&vllmDeployment, desiredDeployment, r.Scheme); err != nil {
+		log.Error(err, "Failed to set owner reference on Deploynent")
+		return ctrl.Result{}, nil
+	}
+
+	// checking if the deployment already exists
+
+	var existingDeployment appsv1.Deployment
+	err := r.Get(ctx, types.NamespacedName{
+		Name:      desiredDeployment.Name,
+		Namespace: desiredDeployment.Namespace,
+	}, &existingDeployment)
+	if err != nil && apierrors.IsNotFound(err) {
+		// No deployment found, go ahead and create it.
+		log.Info("Creating a new Deployment", "Deployment.Namespace", desiredDeployment.Namespace, "Deployment.Name", desiredDeployment.Name)
+		if err := r.Create(ctx, desiredDeployment); err != nil {
+			log.Error(err, "Failed to create new Deployment", "Deployment.Namespace", desiredDeployment.Namespace, "Deployment.Name", desiredDeployment.Name)
+			return ctrl.Result{}, err
+		}
+		return ctrl.Result{Requeue: true}, nil 
+	} else if err != nil {
+		// Error reading the Deployment - requeue
+		log.Error(err, "Failed to get deployment")
+		return ctrl.Result{}, err 
+	}
+	// Existing Deployment found. Check if there is a need to update it 
+	// Compare the desired and existing Deployment specs
+
+
+	}
 
 	return ctrl.Result{}, nil
 }
@@ -78,7 +133,7 @@ func constructDeployment(v *v1alpha1.VllmDeployment) *appsv1.Deployment {
 	envVars := []corev1.EnvVar{}
 	vllmContainer := getVllmContainer(&v.Spec)
 	if vllmContainer != nil {
-		envVars = c.Env
+		envVars = vllmContainer.Env
 	}
 
 	args := convertVllmConfigToArgs(&v.Spec)
@@ -86,7 +141,7 @@ func constructDeployment(v *v1alpha1.VllmDeployment) *appsv1.Deployment {
 	// prepare container ports
 	containerPorts := []corev1.ContainerPort{}
 	if port := v.Spec.VLLMConfig.Port; port != 0 {
-		containerPorts := append(containerPorts, corev1.ContainerPort{
+		containerPorts = append(containerPorts, corev1.ContainerPort{
 			ContainerPort: int32(port),
 			Protocol:      corev1.ProtocolTCP,
 		})
@@ -100,7 +155,48 @@ func constructDeployment(v *v1alpha1.VllmDeployment) *appsv1.Deployment {
 		Env:             envVars,
 		Args:            args,
 		Ports:           containerPorts,
+		// TODO: Add remaining
 	}
+	tolerations := []corev1.Toleration{}
+	if t := v.Spec.Tolerations; t != nil {
+		tolerations = t
+	}
+
+	// create pod template spec
+	podTemplate := corev1.PodTemplateSpec{
+		ObjectMeta: metav1.ObjectMeta{
+			Labels: labels,
+		},
+		Spec: corev1.PodSpec{
+			Containers:  []corev1.Container{container},
+			Tolerations: tolerations,
+			// TODO: add the remaining here.
+		},
+	}
+	var replicas int32 = 1
+	if v.Spec.Replicas != nil && *v.Spec.Replicas != 0 {
+		replicas = *v.Spec.Replicas
+	}
+
+	//create the deployment spec
+	deploymentSpec := appsv1.DeploymentSpec{
+		Replicas: &replicas,
+		Selector: &metav1.LabelSelector{
+			MatchLabels: labels,
+		},
+		Template: podTemplate,
+	}
+	// Create the deployment object
+	deployment := &appsv1.Deployment{
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      fmt.Sprintf("%s-deployment", v.Name),
+			Namespace: v.Namespace,
+			Labels:    labels,
+		},
+		Spec: deploymentSpec,
+	}
+
+	return deployment
 
 }
 
