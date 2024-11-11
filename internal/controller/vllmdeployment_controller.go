@@ -18,6 +18,7 @@ package controller
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"reflect"
 
@@ -82,6 +83,14 @@ func (r *VllmDeploymentReconciler) Reconcile(ctx context.Context, req ctrl.Reque
 	}
 	desiredDeployment := constructDeployment(&vllmDeployment)
 
+	jsonOutput, err := json.MarshalIndent(desiredDeployment, "", " ")
+	if err != nil {
+		log.Error(err, "Failed to convert to json")
+	} else {
+		fmt.Println("**************************")
+		fmt.Println(string(jsonOutput))
+	}
+
 	// Set the owner reference
 	if err := ctrl.SetControllerReference(&vllmDeployment, desiredDeployment, r.Scheme); err != nil {
 		log.Error(err, "Failed to set owner reference on Deploynent")
@@ -91,7 +100,7 @@ func (r *VllmDeploymentReconciler) Reconcile(ctx context.Context, req ctrl.Reque
 	// checking if the deployment already exists
 
 	var existingDeployment appsv1.Deployment
-	err := r.Get(ctx, types.NamespacedName{
+	err = r.Get(ctx, types.NamespacedName{
 		Name:      desiredDeployment.Name,
 		Namespace: desiredDeployment.Namespace,
 	}, &existingDeployment)
@@ -257,17 +266,23 @@ func convertVllmConfigToArgs(v *vllm.VllmDeploymentSpec) []string {
 	args := []string{}
 
 	if vc.GpuMemoryUtilization != "" {
-		args = append(args, fmt.Sprintf("--gpu-memory-utilization=%s", vc.GpuMemoryUtilization))
+		args = append(args, "--gpu-memory-utilization", vc.GpuMemoryUtilization)
 	}
 	if vc.LogLevel != "" {
-		args = append(args, fmt.Sprintf("--log-level=%s", vc.LogLevel))
-
+		args = append(args, "--log-level", vc.LogLevel)
 	}
 	if vc.BlockSize != 0 {
-		args = append(args, fmt.Sprintf("--block-size=%d", vc.BlockSize))
+		args = append(args, "--block-size", fmt.Sprintf("%d", vc.BlockSize))
 	}
 	if vc.MaxModelLen != 0 {
-		args = append(args, fmt.Sprintf("--max-model-len=%d", vc.MaxModelLen))
+		args = append(args, "--max-model-len", fmt.Sprintf("%d", vc.MaxModelLen))
+
+	}
+
+	// Add port if specified
+	if vc.Port != 0 {
+		// Adding --port and converting the integer to a string
+		args = append(args, "--port", fmt.Sprintf("%d", vc.Port))
 	}
 
 	return args
