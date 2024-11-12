@@ -2930,6 +2930,8 @@ spec:
                 properties:
                   block-size:
                     type: integer
+                  enforce-eager:
+                    type: boolean
                   gpu-memory-utilization:
                     type: string
                   log-level:
@@ -2940,6 +2942,7 @@ spec:
                     type: integer
                 required:
                 - block-size
+                - enforce-eager
                 - gpu-memory-utilization
                 - log-level
                 - max-model-len

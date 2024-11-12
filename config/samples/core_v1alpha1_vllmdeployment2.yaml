@@ -1,0 +1,45 @@
+apiVersion: core.vllmoperator.org/v1alpha1
+kind: VllmDeployment
+metadata:
+  name: meta-llama-3-1-8b-instruct-awq-int4-2
+  namespace: default
+  labels:
+    app.kubernetes.io/name: vllm-k8s-operator-2
+    app.kubernetes.io/managed-by: kustomize
+spec:
+  replicas: 1
+  model: 
+    name: "hugging-quants/Meta-Llama-3.1-8B-Instruct-AWQ-INT4"
+    hf_url: "https://huggingface.co/hugging-quants/Meta-Llama-3.1-8B-Instruct-AWQ-INT4"
+  vLLMConfig:
+    port: 8072
+    gpu-memory-utilization: "0.50"
+    log-level: "info"
+    block-size: 8
+    max-model-len: 1000
+    enforce-eager: true
+    
+  # tolerations:
+  #   - key: "example-key"
+  #     operator: "Equal"
+  #     value: "example-value"
+  #     effect: "NoSchedule"
+  containers: 
+    - name: vllm2
+      image: vllm/vllm-openai:v0.6.2
+      imagePullPolicy: IfNotPresent
+      env:
+        - name: EXAMPLE_ENV
+          value: "example-value"
+      ports:
+        - containerPort: 8072
+          protocol: TCP
+  # initContainers:
+  #   - name: example-init-container
+  #     image: example-init-image:latest
+  #     imagePullPolicy: Always
+  #     command: ["/bin/sh", "-c", "echo Initializing..."]
+
+
+
+
