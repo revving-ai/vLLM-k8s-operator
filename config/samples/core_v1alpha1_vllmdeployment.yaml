@@ -13,10 +13,12 @@ spec:
     hf_url: "https://huggingface.co/hugging-quants/Meta-Llama-3.1-8B-Instruct-AWQ-INT4"
   vLLMConfig:
     port: 8072
-    gpu-memory-utilization: "0.95"
+    gpu-memory-utilization: "0.45"
     log-level: "info"
-    block-size: 16
-    max-model-len: 20000
+    block-size: 8
+    max-model-len: 2000
+    enforce-eager: true
+    
   # tolerations:
   #   - key: "example-key"
   #     operator: "Equal"

@@ -263,20 +263,29 @@ func getVllmContainer(v *vllm.VllmDeploymentSpec) *corev1.Container {
 
 func convertVllmConfigToArgs(v *vllm.VllmDeploymentSpec) []string {
 	vc := v.VLLMConfig
+	model := v.Model
 	args := []string{}
 
+	if model.Name != "" {
+		args = append(args, "--model", model.Name)
+	}
 	if vc.GpuMemoryUtilization != "" {
 		args = append(args, "--gpu-memory-utilization", vc.GpuMemoryUtilization)
 	}
 	if vc.LogLevel != "" {
-		args = append(args, "--log-level", vc.LogLevel)
+		args = append(args, "--uvicorn-log-level", vc.LogLevel)
 	}
+
 	if vc.BlockSize != 0 {
 		args = append(args, "--block-size", fmt.Sprintf("%d", vc.BlockSize))
 	}
 	if vc.MaxModelLen != 0 {
 		args = append(args, "--max-model-len", fmt.Sprintf("%d", vc.MaxModelLen))
 
+	}
+
+	if vc.EnforceEager {
+		args = append(args, "--enforce-eager")
 	}
 
 	// Add port if specified

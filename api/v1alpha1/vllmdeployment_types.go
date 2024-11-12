@@ -43,6 +43,7 @@ type VLLMConfig struct {
 	LogLevel             string `json:"log-level"`
 	BlockSize            int    `json:"block-size"`
 	MaxModelLen          int    `json:"max-model-len"`
+	EnforceEager         bool   `json:"enforce-eager"`
 }
 
 // VllmDeploymentStatus defines the observed state of VllmDeployment.
