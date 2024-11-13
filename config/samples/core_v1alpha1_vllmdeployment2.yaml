@@ -9,16 +9,16 @@ metadata:
 spec:
   replicas: 1
   model: 
-    name: "hugging-quants/Meta-Llama-3.1-8B-Instruct-AWQ-INT4"
-    hf_url: "https://huggingface.co/hugging-quants/Meta-Llama-3.1-8B-Instruct-AWQ-INT4"
+    name: "keeeeenw/MicroLlama"
+    hf_url: "https://huggingface.co/keeeeenw/MicroLlama"
   vLLMConfig:
-    port: 8072
-    gpu-memory-utilization: "0.50"
+    port: 8073
+    gpu-memory-utilization: "0.25"
     log-level: "info"
     block-size: 8
-    max-model-len: 1000
+    max-model-len: 500
     enforce-eager: true
-    
+
   # tolerations:
   #   - key: "example-key"
   #     operator: "Equal"
