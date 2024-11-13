@@ -90,21 +90,21 @@ kubectl apply -f example-vllmdeployment.yaml
 
 **VllmDeployment Fields**
 
-    •	replicas (integer): Number of replicas for the vLLM deployment.
-    •	model (object):
-    •	name (string): Name of the model.
-    •	hf_url (string): URL to the model on Hugging Face or similar.
-    •	vLLMConfig (object):
-    •	port (integer): Port for the vLLM service.
-    •	gpu-memory-utilization (string): GPU utilization ratio.
-    •	log-level (string): Log level for the service.
-    •	block-size (integer): Block size.
-    •	max-model-len (integer): Maximum model length.
-    •	enforce-eager (boolean): Enforce eager execution.
-    •	containers (array): List of container specifications.
-    •	name (string): Name of the container.
-    •	image (string): Container image.
-    •	ports (array): List of ports exposed by the container.
+- replicas (integer): Number of replicas for the vLLM deployment.
+- model (object):
+  - name (string): Name of the model.
+  - hf_url (string): URL to the model on Hugging Face or similar.
+- vLLMConfig (object):
+  - port (integer): Port for the vLLM service.
+  - gpu-memory-utilization (string): GPU utilization ratio.
+  - log-level (string): Log level for the service.
+  - block-size (integer): Block size.
+  - max-model-len (integer): Maximum model length.
+  - enforce-eager (boolean): Enforce eager execution.
+- containers (array): List of container specifications.
+  - name (string): Name of the container.
+  - image (string): Container image.
+  - ports (array): List of ports exposed by the container.
 
 ### Contributing 🤝
 
