@@ -1,6 +1,6 @@
 # vllm-k8s-operator 🚀 [WIP!]
 
-Welcome to the **vllm-k8s-operator**! This open-source Kubernetes operator is designed to streamline the deployment, scaling, and management of vLLM (vectorized Language Models) in Kubernetes clusters. Whether you're deploying large LLMs or managing complex workloads, our operator makes it simple, efficient, and scalable.
+Welcome to the **vllm-k8s-operator**! This open-source Kubernetes operator is designed to streamline the deployment, scaling, and management of LLMs served via vLLM in Kubernetes clusters. The goal is to build an inferencing operator that DevOps teams can use to deploy and manage open-source models. The operator should integrate seamlessly with your existing infrastructure, avoiding the need to set up something entirely new.
 
 ---
 
@@ -22,17 +22,15 @@ Welcome to the **vllm-k8s-operator**! This open-source Kubernetes operator is de
 
 ## Overview ✨
 
-The **vllm-k8s-operator** provides Kubernetes-native automation for deploying and managing vLLM models with a focus on scalability, configurability, and optimized resource usage. With support for custom configuration, flexible deployment options, and seamless integration with existing Kubernetes workflows, this operator makes it easy for platform teams and DevOps engineers to manage vLLMs at scale.
+The **vllm-k8s-operator** provides Kubernetes-native automation for deploying and managing vLLM models with a focus on scalability, configurability, and automated inference optimization. You can define your model requirements as Kubernetes manifests, and the operator will deploy those models with the optimal settings to bring them to life
 
 ---
 
 ## Features 🔍
 
 - **Seamless Deployment**: Quickly deploy vLLM models on Kubernetes using CRDs.
-- **Scalable Management**: Scale replicas effortlessly to meet demand.
-- **Customizable Configurations**: Easily configure model parameters, ports, GPU utilization, and more.
-- **Resource Optimization**: Efficiently use GPU and memory resources.
-- **Open-Source Community**: Join and contribute to a vibrant community of developers.
+- **Autoscaling**: Scale replicas effortlessly to meet demand.
+- **GPU Optimization**: Efficiently use GPU and memory resources.
 
 ---
 
@@ -51,6 +49,79 @@ Ensure you have the following prerequisites installed:
 Install the **vllm-k8s-operator** using `kubectl`:
 
 ```bash
-kubectl apply -f https://raw.githubusercontent.com/<your-repo>/vllm-k8s-operator/main/deploy/crds.yaml
-kubectl apply -f https://raw.githubusercontent.com/<your-repo>/vllm-k8s-operator/main/deploy/operator.yaml
+make install
 ```
+
+### Quick Start 🚀
+
+Create a VllmDeployment resource to deploy a vLLM model:
+
+```bash
+apiVersion: core.vllmoperator.org/v1alpha1
+kind: VllmDeployment
+metadata:
+  name: example-model
+spec:
+  replicas: 1
+  model:
+    name: "huggingface-model-name"
+    hf_url: "https://huggingface.co/model-url"
+  vLLMConfig:
+    port: 8072
+    gpu-memory-utilization: "0.75"
+    log-level: "info"
+    block-size: 16
+    max-model-len: 2000
+    enforce-eager: true
+  containers:
+    - name: vllm
+      image: vllm/vllm-openai:v0.6.2
+      ports:
+        - containerPort: 8072
+```
+
+Apply the resource:
+
+```bash
+kubectl apply -f example-vllmdeployment.yaml
+```
+
+### Configuration ⚙️
+
+**VllmDeployment Fields**
+
+    •	replicas (integer): Number of replicas for the vLLM deployment.
+    •	model (object):
+    •	name (string): Name of the model.
+    •	hf_url (string): URL to the model on Hugging Face or similar.
+    •	vLLMConfig (object):
+    •	port (integer): Port for the vLLM service.
+    •	gpu-memory-utilization (string): GPU utilization ratio.
+    •	log-level (string): Log level for the service.
+    •	block-size (integer): Block size.
+    •	max-model-len (integer): Maximum model length.
+    •	enforce-eager (boolean): Enforce eager execution.
+    •	containers (array): List of container specifications.
+    •	name (string): Name of the container.
+    •	image (string): Container image.
+    •	ports (array): List of ports exposed by the container.
+
+### Contributing 🤝
+
+We ❤️ contributions! If you’d like to contribute to the **vllm-k8s-operator**, please take a look at our contribution guidelines. Contributions can include:
+• Bug fixes 🐛
+• New features 🌟
+• Documentation updates 📚
+
+To get started: 1. Fork the repository. 2. Create a new branch for your feature or bug fix. 3. Commit your changes with clear commit messages. 4. Open a pull request describing your changes.
+
+### Community 💬
+
+Join the discussion and connect with other developers:
+• GitHub Issues: Report bugs or suggest features on our issue tracker.
+• GitHub Discussions: Engage with the community on GitHub Discussions.
+• Slack: Join our Slack community to chat with other users and contributors.
+
+### License 📜
+
+This project is licensed under the Apache License 2.0.
