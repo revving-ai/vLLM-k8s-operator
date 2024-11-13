@@ -109,18 +109,28 @@ kubectl apply -f example-vllmdeployment.yaml
 ### Contributing 🤝
 
 We ❤️ contributions! If you’d like to contribute to the **vllm-k8s-operator**, please take a look at our contribution guidelines. Contributions can include:
-• Bug fixes 🐛
-• New features 🌟
-• Documentation updates 📚
 
-To get started: 1. Fork the repository. 2. Create a new branch for your feature or bug fix. 3. Commit your changes with clear commit messages. 4. Open a pull request describing your changes.
+- Bug fixes 🐛
+- New features 🌟
+- Documentation updates 📚
+
+To get started:
+
+1. Fork the repository.
+
+2. Create a new branch for your feature or bug fix.
+
+3. Commit your changes with clear commit messages.
+
+4. Open a pull request describing your changes.
 
 ### Community 💬
 
 Join the discussion and connect with other developers:
-• GitHub Issues: Report bugs or suggest features on our issue tracker.
-• GitHub Discussions: Engage with the community on GitHub Discussions.
-• Slack: Join our Slack community to chat with other users and contributors.
+
+- GitHub Issues: Report bugs or suggest features on our issue tracker.
+- GitHub Discussions: Engage with the community on GitHub Discussions.
+- Slack: Join our Slack community to chat with other users and contributors.
 
 ### License 📜
 
